@@ -11,7 +11,8 @@ use crate::{
 
 #[async_trait]
 pub trait DatabaseT {
-    async fn create_account(&self, new_account: Account) -> Result<(), Box<dyn std::error::Error>>;
+    async fn create_account(&self, new_account: Account)
+        -> Result<i32, Box<dyn std::error::Error>>;
 }
 
 #[derive(Clone)]
@@ -30,10 +31,11 @@ impl ServiceT for Service {
     async fn create_account(
         &self,
         request: CreateAccountRequest,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<i32, Box<dyn std::error::Error>> {
         let password_salt = util::get_rand_16();
         let password_hash = util::derive_stored_password(&request.password_hash, &password_salt);
-        self.db
+        let new_id = self
+            .db
             .create_account(Account {
                 id: 0,
                 nickname: request.nickname,
@@ -44,6 +46,6 @@ impl ServiceT for Service {
                 account_encryption_key: request.account_key,
             })
             .await?;
-        Ok(())
+        Ok(new_id)
     }
 }

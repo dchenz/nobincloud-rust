@@ -23,16 +23,19 @@ impl Database {
 
 #[async_trait]
 impl DatabaseT for Database {
-    async fn create_account(&self, new_account: Account) -> Result<(), Box<dyn std::error::Error>> {
-        sqlx::query(queries::SQL_INSERT_ACCOUNT)
+    async fn create_account(
+        &self,
+        new_account: Account,
+    ) -> Result<i32, Box<dyn std::error::Error>> {
+        let new_id: (i32,) = sqlx::query_as(queries::SQL_INSERT_ACCOUNT)
             .bind(&new_account.created_at)
             .bind(&new_account.nickname)
             .bind(&new_account.email)
             .bind(new_account.password_salt)
             .bind(new_account.password_hash)
             .bind(new_account.account_encryption_key)
-            .execute(&self.pool)
+            .fetch_one(&self.pool)
             .await?;
-        Ok(())
+        Ok(new_id.0)
     }
 }
