@@ -1,7 +1,7 @@
 use super::serdebase64;
 use axum::{response::IntoResponse, Json};
+use either::Either;
 use serde;
-use sqlx::Either;
 
 #[derive(Debug, serde::Deserialize)]
 pub struct CreateAccountRequest {
@@ -16,6 +16,7 @@ pub struct CreateAccountRequest {
 #[derive(serde::Serialize)]
 struct ResponseBody<T: serde::Serialize> {
     success: bool,
+    #[serde(with = "either::serde_untagged")]
     data: Either<T, String>,
 }
 
