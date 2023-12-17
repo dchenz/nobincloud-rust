@@ -48,11 +48,11 @@ export function useLocalStorageState<T>(
 
 export function useLogout(redirect?: string): () => void {
   const { setAccountKey, setLoggedIn } = useContext(AuthContext);
-  const clearCookies = useCookies(["session", "signed_in"])[2];
+  const clearCookies = useCookies(["id", "signed_in"])[2];
   const navigate = useNavigate();
   return () => {
     logoutAccount().then(() => {
-      clearCookies("session");
+      clearCookies("id");
       clearCookies("signed_in");
       setAccountKey(null);
       setLoggedIn(false);

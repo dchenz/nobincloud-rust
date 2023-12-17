@@ -47,6 +47,7 @@ pub async fn run(connection_string: &str) {
     let router = Router::new()
         .route("/api/user/register", post(routes::register_user))
         .route("/api/user/whoami", get(routes::get_whoami))
+        .route("/api/user/logout", post(routes::logout_user))
         .layer(session_service)
         .layer(CookieManagerLayer::new())
         .with_state(AppState {

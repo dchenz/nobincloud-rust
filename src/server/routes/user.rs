@@ -58,3 +58,8 @@ pub async fn get_whoami(session: Session) -> (StatusCode, Response<String>) {
     };
     (StatusCode::OK, Response::Success(email))
 }
+
+pub async fn logout_user(session: Session) -> (StatusCode, Response<()>) {
+    session.flush();
+    (StatusCode::OK, Response::Success(()))
+}
