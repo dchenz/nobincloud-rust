@@ -50,3 +50,11 @@ pub async fn register_user(
     cookies.add(signed_in_cookie);
     (StatusCode::OK, Response::Success(()))
 }
+
+pub async fn get_whoami(session: Session) -> (StatusCode, Response<String>) {
+    let email = match session.get_value("user_email").unwrap_or_default() {
+        sqlx::types::JsonValue::String(s) => s,
+        _ => "".to_owned(),
+    };
+    (StatusCode::OK, Response::Success(email))
+}

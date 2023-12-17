@@ -6,7 +6,10 @@ use crate::services::Service;
 
 use async_trait::async_trait;
 use axum::{
-    error_handling::HandleErrorLayer, http::StatusCode, routing::post, serve, BoxError, Router,
+    error_handling::HandleErrorLayer,
+    http::StatusCode,
+    routing::{get, post},
+    serve, BoxError, Router,
 };
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -43,6 +46,7 @@ pub async fn run(connection_string: &str) {
 
     let router = Router::new()
         .route("/api/user/register", post(routes::register_user))
+        .route("/api/user/whoami", get(routes::get_whoami))
         .layer(session_service)
         .layer(CookieManagerLayer::new())
         .with_state(AppState {
