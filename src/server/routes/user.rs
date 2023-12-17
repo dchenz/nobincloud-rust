@@ -15,6 +15,7 @@ pub async fn register_user(
     Json(body): Json<CreateAccountRequest>,
 ) -> (StatusCode, Response<()>) {
     let svc = svc.as_ref();
+    let email = body.email.to_owned();
     let new_id = match svc.create_account(body).await {
         Err(e) => {
             return (
@@ -33,6 +34,15 @@ pub async fn register_user(
         }
         Ok(_) => (),
     };
+    match session.insert("user_email", email) {
+        Err(e) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Response::Fail(e.to_string()),
+            )
+        }
+        Ok(_) => (),
+    }
     // The session cookie is HTTP-only, so a 2nd cookie
     // is used to determine if the user is signed in.
     let mut signed_in_cookie = Cookie::new("signed_in", "true");
