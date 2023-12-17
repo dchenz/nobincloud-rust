@@ -7,3 +7,7 @@ pub const SQL_INSERT_ACCOUNT: &str = "INSERT INTO user_accounts (
     account_encryption_key
 ) VALUES(?, ?, ?, ?, ?, ?)
 RETURNING id";
+
+pub const SQL_CHECK_EMAIL_EXISTS: &str = "SELECT 1
+FROM user_accounts
+WHERE email = ?";

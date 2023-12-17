@@ -1,3 +1,4 @@
+pub mod errors;
 mod util;
 
 use async_trait::async_trait;
@@ -9,10 +10,13 @@ use crate::{
     server::ServiceT,
 };
 
+use self::errors::DuplicateEmail;
+
 #[async_trait]
 pub trait DatabaseT {
     async fn create_account(&self, new_account: Account)
         -> Result<i32, Box<dyn std::error::Error>>;
+    async fn check_email_exists(&self, email: &str) -> Result<bool, Box<dyn std::error::Error>>;
 }
 
 #[derive(Clone)]
@@ -32,6 +36,9 @@ impl ServiceT for Service {
         &self,
         request: CreateAccountRequest,
     ) -> Result<i32, Box<dyn std::error::Error>> {
+        if self.db.check_email_exists(&request.email).await? {
+            return Err(DuplicateEmail.into());
+        }
         let password_salt = util::get_rand_16();
         let password_hash = util::derive_stored_password(&request.password_hash, &password_salt);
         let new_id = self

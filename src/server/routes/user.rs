@@ -1,5 +1,6 @@
 use crate::model::{CreateAccountRequest, Response};
 use crate::server::AppState;
+use crate::services::errors::DuplicateEmail;
 
 use axum::{extract::State, http::StatusCode, Json};
 use axum_macros::debug_handler;
@@ -19,7 +20,11 @@ pub async fn register_user(
     let new_id = match svc.create_account(body).await {
         Err(e) => {
             return (
-                StatusCode::INTERNAL_SERVER_ERROR,
+                if e.is::<DuplicateEmail>() {
+                    StatusCode::OK
+                } else {
+                    StatusCode::INTERNAL_SERVER_ERROR
+                },
                 Response::Fail(e.to_string()),
             )
         }

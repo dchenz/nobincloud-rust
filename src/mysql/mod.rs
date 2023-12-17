@@ -38,4 +38,15 @@ impl DatabaseT for Database {
             .await?;
         Ok(new_id.0)
     }
+
+    async fn check_email_exists(&self, email: &str) -> Result<bool, Box<dyn std::error::Error>> {
+        let exists: Option<(bool,)> = sqlx::query_as(queries::SQL_CHECK_EMAIL_EXISTS)
+            .bind(email)
+            .fetch_optional(&self.pool)
+            .await?;
+        Ok(match exists {
+            Some(v) => v.0,
+            None => false,
+        })
+    }
 }
