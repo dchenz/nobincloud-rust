@@ -30,23 +30,17 @@ pub async fn register_user(
         }
         Ok(v) => v,
     };
-    match session.insert("user_id", new_id) {
-        Err(e) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Response::Fail(e.to_string()),
-            )
-        }
-        Ok(_) => (),
-    };
-    match session.insert("user_email", email) {
-        Err(e) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Response::Fail(e.to_string()),
-            )
-        }
-        Ok(_) => (),
+    if let Err(e) = session.insert("user_id", new_id) {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Response::Fail(e.to_string()),
+        );
+    }
+    if let Err(e) = session.insert("user_email", email) {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Response::Fail(e.to_string()),
+        );
     }
     // The session cookie is HTTP-only, so a 2nd cookie
     // is used to determine if the user is signed in.

@@ -12,6 +12,6 @@ pub fn deserialize<'a, D: Deserializer<'a>>(d: D) -> Result<Vec<u8>, D::Error> {
     let b64encoded = String::deserialize(d)?;
     let v = general_purpose::STANDARD
         .decode(b64encoded)
-        .map_err(|e| serde::de::Error::custom(e))?;
+        .map_err(serde::de::Error::custom)?;
     Ok(v)
 }

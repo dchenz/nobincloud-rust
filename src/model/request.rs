@@ -1,7 +1,6 @@
 use super::serdebase64;
 use axum::{response::IntoResponse, Json};
 use either::Either;
-use serde;
 
 #[derive(Debug, serde::Deserialize)]
 pub struct CreateAccountRequest {
