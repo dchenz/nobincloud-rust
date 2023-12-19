@@ -30,23 +30,12 @@ pub async fn register_user(
         }
         Ok(v) => v,
     };
-    if let Err(e) = session.insert("user_id", new_id) {
+    if let Err(e) = set_session_cookies(&cookies, &session, new_id, email) {
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             Response::Fail(e.to_string()),
         );
     }
-    if let Err(e) = session.insert("user_email", email) {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Response::Fail(e.to_string()),
-        );
-    }
-    // The session cookie is HTTP-only, so a 2nd cookie
-    // is used to determine if the user is signed in.
-    let mut signed_in_cookie = Cookie::new("signed_in", "true");
-    signed_in_cookie.set_path("/");
-    cookies.add(signed_in_cookie);
     (StatusCode::OK, Response::Success(()))
 }
 
@@ -78,23 +67,12 @@ pub async fn login_user(
             }
         }
     };
-    if let Err(e) = session.insert("user_id", result.id) {
+    if let Err(e) = set_session_cookies(&cookies, &session, result.id, email) {
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             Response::Fail(e.to_string()),
         );
     }
-    if let Err(e) = session.insert("user_email", email) {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Response::Fail(e.to_string()),
-        );
-    }
-    // The session cookie is HTTP-only, so a 2nd cookie
-    // is used to determine if the user is signed in.
-    let mut signed_in_cookie = Cookie::new("signed_in", "true");
-    signed_in_cookie.set_path("/");
-    cookies.add(signed_in_cookie);
     let response_body = LoginResponse {
         account_encryption_key: result.account_encryption_key,
     };
@@ -104,4 +82,20 @@ pub async fn login_user(
 pub async fn logout_user(session: Session) -> (StatusCode, Response<()>) {
     session.flush();
     (StatusCode::OK, Response::Success(()))
+}
+
+fn set_session_cookies(
+    cookies: &Cookies,
+    session: &Session,
+    user_id: i32,
+    email: String,
+) -> Result<(), Box<dyn std::error::Error>> {
+    session.insert("user_id", user_id)?;
+    session.insert("user_email", email)?;
+    // The session cookie is HTTP-only, so a 2nd cookie
+    // is used to determine if the user is signed in.
+    let mut signed_in_cookie = Cookie::new("signed_in", "true");
+    signed_in_cookie.set_path("/");
+    cookies.add(signed_in_cookie);
+    Ok(())
 }
