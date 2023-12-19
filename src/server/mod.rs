@@ -35,8 +35,14 @@ struct AppState {
     svc: Arc<dyn ServiceT + Sync + Send>,
 }
 
-pub async fn run(connection_string: &str) {
-    let db = Database::new(connection_string).await.unwrap();
+pub struct ServerConfig {
+    pub hostname: String,
+    pub port: u16,
+    pub db_connection_string: String,
+}
+
+pub async fn run(config: ServerConfig) {
+    let db = Database::new(&config.db_connection_string).await.unwrap();
 
     let session_service = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(|_: BoxError| async {
@@ -60,6 +66,7 @@ pub async fn run(connection_string: &str) {
             svc: Arc::new(Service::new(db)),
         });
 
-    let listener = TcpListener::bind("0.0.0.0:5000").await.unwrap();
+    let addr = format!("{}:{}", config.hostname, config.port);
+    let listener = TcpListener::bind(addr).await.unwrap();
     serve(listener, router).await.unwrap();
 }

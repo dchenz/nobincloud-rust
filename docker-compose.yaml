@@ -25,6 +25,8 @@ services:
     build:
       context: .
     environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=5000
       - DATABASE_URL=mysql://root@database:3306/user_data
     depends_on:
       - database
