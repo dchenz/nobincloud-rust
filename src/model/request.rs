@@ -12,6 +12,19 @@ pub struct CreateAccountRequest {
     pub account_key: Vec<u8>,
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct LoginRequest {
+    pub email: String,
+    #[serde(rename = "passwordHash", with = "serdebase64")]
+    pub password_hash: Vec<u8>,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct LoginResponse {
+    #[serde(rename = "accountKey", with = "serdebase64")]
+    pub account_encryption_key: Vec<u8>,
+}
+
 #[derive(serde::Serialize)]
 struct ResponseBody<T: serde::Serialize> {
     success: bool,

@@ -6,17 +6,26 @@ use chrono::Utc;
 use std::sync::Arc;
 
 use crate::{
-    model::{Account, CreateAccountRequest},
+    model::{Account, AccountEncryptionInfo, AccountHashInfo, CreateAccountRequest, LoginRequest},
     server::ServiceT,
 };
 
-use self::errors::DuplicateEmail;
+use self::errors::{DuplicateEmail, FailedLoginAttempt};
 
 #[async_trait]
 pub trait DatabaseT {
     async fn create_account(&self, new_account: Account)
         -> Result<i32, Box<dyn std::error::Error>>;
     async fn check_email_exists(&self, email: &str) -> Result<bool, Box<dyn std::error::Error>>;
+    async fn get_account_hash_info(
+        &self,
+        email: &str,
+    ) -> Result<Option<AccountHashInfo>, Box<dyn std::error::Error>>;
+    async fn get_account_encryption_key(
+        &self,
+        user_id: i32,
+        password_hash: &[u8],
+    ) -> Result<Option<Vec<u8>>, Box<dyn std::error::Error>>;
 }
 
 #[derive(Clone)]
@@ -54,5 +63,27 @@ impl ServiceT for Service {
             })
             .await?;
         Ok(new_id)
+    }
+
+    async fn login(
+        &self,
+        request: LoginRequest,
+    ) -> Result<AccountEncryptionInfo, Box<dyn std::error::Error>> {
+        let hash_info = self
+            .db
+            .get_account_hash_info(&request.email)
+            .await?
+            .ok_or(FailedLoginAttempt)?;
+        let password_hash =
+            util::derive_stored_password(&request.password_hash, &hash_info.password_salt);
+        let account_encryption_key = self
+            .db
+            .get_account_encryption_key(hash_info.id, &password_hash)
+            .await?
+            .ok_or(FailedLoginAttempt)?;
+        Ok(AccountEncryptionInfo {
+            id: hash_info.id,
+            account_encryption_key,
+        })
     }
 }

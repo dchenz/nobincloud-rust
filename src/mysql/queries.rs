@@ -11,3 +11,11 @@ RETURNING id";
 pub const SQL_CHECK_EMAIL_EXISTS: &str = "SELECT 1
 FROM user_accounts
 WHERE email = ?";
+
+pub const SQL_GET_ACCOUNT_HASH_INFO: &str = "SELECT id, password_salt
+FROM user_accounts
+WHERE email = ?";
+
+pub const SQL_GET_ACCOUNT_ENCRYPTION_KEY: &str = "SELECT account_encryption_key
+FROM user_accounts
+WHERE id = ? AND password_hash = ?";

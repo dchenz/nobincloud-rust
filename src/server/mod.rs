@@ -1,6 +1,6 @@
 mod routes;
 
-use crate::model::CreateAccountRequest;
+use crate::model::{AccountEncryptionInfo, CreateAccountRequest, LoginRequest};
 use crate::mysql::Database;
 use crate::services::Service;
 
@@ -23,6 +23,11 @@ pub trait ServiceT {
         &self,
         request: CreateAccountRequest,
     ) -> Result<i32, Box<dyn std::error::Error>>;
+
+    async fn login(
+        &self,
+        request: LoginRequest,
+    ) -> Result<AccountEncryptionInfo, Box<dyn std::error::Error>>;
 }
 
 #[derive(Clone)]
@@ -47,6 +52,7 @@ pub async fn run(connection_string: &str) {
     let router = Router::new()
         .route("/api/user/register", post(routes::register_user))
         .route("/api/user/whoami", get(routes::get_whoami))
+        .route("/api/user/login", post(routes::login_user))
         .route("/api/user/logout", post(routes::logout_user))
         .layer(session_service)
         .layer(CookieManagerLayer::new())

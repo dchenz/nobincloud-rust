@@ -1,6 +1,6 @@
 mod queries;
 
-use crate::model::Account;
+use crate::model::{Account, AccountHashInfo};
 use crate::services::DatabaseT;
 
 use async_trait::async_trait;
@@ -48,5 +48,32 @@ impl DatabaseT for Database {
             Some(v) => v.0,
             None => false,
         })
+    }
+
+    async fn get_account_hash_info(
+        &self,
+        email: &str,
+    ) -> Result<Option<AccountHashInfo>, Box<dyn std::error::Error>> {
+        let result: Option<(i32, Vec<u8>)> = sqlx::query_as(queries::SQL_GET_ACCOUNT_HASH_INFO)
+            .bind(email)
+            .fetch_optional(&self.pool)
+            .await?;
+        Ok(result.map(|(user_id, password_salt)| AccountHashInfo {
+            id: user_id,
+            password_salt,
+        }))
+    }
+
+    async fn get_account_encryption_key(
+        &self,
+        user_id: i32,
+        password_hash: &[u8],
+    ) -> Result<Option<Vec<u8>>, Box<dyn std::error::Error>> {
+        let result: Option<(Vec<u8>,)> = sqlx::query_as(queries::SQL_GET_ACCOUNT_ENCRYPTION_KEY)
+            .bind(user_id)
+            .bind(password_hash)
+            .fetch_optional(&self.pool)
+            .await?;
+        Ok(result.map(|(key,)| key))
     }
 }

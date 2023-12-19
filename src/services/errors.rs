@@ -10,3 +10,14 @@ impl Display for DuplicateEmail {
         write!(f, "Email already exists")
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct FailedLoginAttempt;
+
+impl std::error::Error for FailedLoginAttempt {}
+
+impl Display for FailedLoginAttempt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid email or password")
+    }
+}

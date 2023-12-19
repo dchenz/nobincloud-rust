@@ -10,3 +10,15 @@ pub struct Account {
     pub password_hash: Vec<u8>,
     pub account_encryption_key: Vec<u8>,
 }
+
+#[derive(Debug)]
+pub struct AccountHashInfo {
+    pub id: i32,
+    pub password_salt: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub struct AccountEncryptionInfo {
+    pub id: i32,
+    pub account_encryption_key: Vec<u8>,
+}
