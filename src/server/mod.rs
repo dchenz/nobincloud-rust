@@ -1,3 +1,4 @@
+mod middleware;
 mod routes;
 
 use crate::model::{AccountEncryptionInfo, CreateAccountRequest, FileUploadRequest, LoginRequest};
@@ -5,6 +6,7 @@ use crate::mysql::Database;
 use crate::services::Service;
 
 use async_trait::async_trait;
+use axum::middleware::from_fn;
 use axum::{
     error_handling::HandleErrorLayer,
     http::StatusCode,
@@ -62,11 +64,12 @@ pub async fn run(config: ServerConfig) {
         );
 
     let router = Router::new()
+        .route("/api/file", post(routes::upload_file))
+        .layer(from_fn(middleware::authenticate_request))
         .route("/api/user/register", post(routes::register_user))
         .route("/api/user/whoami", get(routes::get_whoami))
         .route("/api/user/login", post(routes::login_user))
         .route("/api/user/logout", post(routes::logout_user))
-        .route("/api/file", post(routes::upload_file))
         .layer(session_service)
         .layer(CookieManagerLayer::new())
         .with_state(AppState {
