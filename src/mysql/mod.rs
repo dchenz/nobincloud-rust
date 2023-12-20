@@ -1,6 +1,6 @@
 mod queries;
 
-use crate::model::{Account, AccountHashInfo};
+use crate::model::{Account, AccountHashInfo, File};
 use crate::services::DatabaseT;
 
 use async_trait::async_trait;
@@ -75,5 +75,18 @@ impl DatabaseT for Database {
             .fetch_optional(&self.pool)
             .await?;
         Ok(result.map(|(key,)| key))
+    }
+
+    async fn create_file(&self, new_file: File) -> Result<(), Box<dyn std::error::Error>> {
+        sqlx::query(queries::SQL_INSERT_FILE)
+            .bind(new_file.public_id)
+            .bind(new_file.owner_id)
+            .bind(new_file.encryption_key)
+            .bind(new_file.parent_folder_id)
+            .bind(new_file.metadata)
+            .bind(new_file.saved_location)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
     }
 }

@@ -2,11 +2,16 @@ pub mod errors;
 mod util;
 
 use async_trait::async_trait;
+use base64::{engine::general_purpose, Engine};
 use chrono::Utc;
+use sqlx::types::Uuid;
 use std::sync::Arc;
 
 use crate::{
-    model::{Account, AccountEncryptionInfo, AccountHashInfo, CreateAccountRequest, LoginRequest},
+    model::{
+        Account, AccountEncryptionInfo, AccountHashInfo, CreateAccountRequest, File,
+        FileUploadRequest, LoginRequest,
+    },
     server::ServiceT,
 };
 
@@ -26,6 +31,7 @@ pub trait DatabaseT {
         user_id: i32,
         password_hash: &[u8],
     ) -> Result<Option<Vec<u8>>, Box<dyn std::error::Error>>;
+    async fn create_file(&self, new_file: File) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 #[derive(Clone)]
@@ -85,5 +91,27 @@ impl ServiceT for Service {
             id: hash_info.id,
             account_encryption_key,
         })
+    }
+
+    async fn upload_file(
+        &self,
+        user_id: i32,
+        request: FileUploadRequest,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        let file_uuid = Uuid::new_v4();
+        let encryption_key = general_purpose::STANDARD.decode(request.encryption_key)?;
+        let metadata = general_purpose::STANDARD.decode(request.metadata)?;
+        self.db
+            .create_file(File {
+                id: 0,
+                public_id: file_uuid.to_owned(),
+                owner_id: user_id,
+                encryption_key,
+                parent_folder_id: None,
+                metadata,
+                saved_location: "test".to_owned(),
+            })
+            .await?;
+        Ok(file_uuid.to_string())
     }
 }

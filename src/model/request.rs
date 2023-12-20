@@ -1,5 +1,6 @@
 use super::serdebase64;
-use axum::{response::IntoResponse, Json};
+use axum::{body::Bytes, response::IntoResponse, Json};
+use axum_typed_multipart::{FieldData, TryFromMultipart};
 use either::Either;
 
 #[derive(Debug, serde::Deserialize)]
@@ -23,6 +24,16 @@ pub struct LoginRequest {
 pub struct LoginResponse {
     #[serde(rename = "accountKey", with = "serdebase64")]
     pub account_encryption_key: Vec<u8>,
+}
+
+#[derive(Debug, TryFromMultipart)]
+pub struct FileUploadRequest {
+    pub file: FieldData<Bytes>,
+    #[form_data(field_name = "encryptionKey")]
+    pub encryption_key: String,
+    #[form_data(field_name = "parentFolder")]
+    pub parent_folder: Option<String>,
+    pub metadata: String,
 }
 
 #[derive(serde::Serialize)]

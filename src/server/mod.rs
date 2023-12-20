@@ -1,6 +1,6 @@
 mod routes;
 
-use crate::model::{AccountEncryptionInfo, CreateAccountRequest, LoginRequest};
+use crate::model::{AccountEncryptionInfo, CreateAccountRequest, FileUploadRequest, LoginRequest};
 use crate::mysql::Database;
 use crate::services::Service;
 
@@ -28,6 +28,12 @@ pub trait ServiceT {
         &self,
         request: LoginRequest,
     ) -> Result<AccountEncryptionInfo, Box<dyn std::error::Error>>;
+
+    async fn upload_file(
+        &self,
+        user_id: i32,
+        request: FileUploadRequest,
+    ) -> Result<String, Box<dyn std::error::Error>>;
 }
 
 #[derive(Clone)]
@@ -60,6 +66,7 @@ pub async fn run(config: ServerConfig) {
         .route("/api/user/whoami", get(routes::get_whoami))
         .route("/api/user/login", post(routes::login_user))
         .route("/api/user/logout", post(routes::logout_user))
+        .route("/api/file", post(routes::upload_file))
         .layer(session_service)
         .layer(CookieManagerLayer::new())
         .with_state(AppState {

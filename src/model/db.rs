@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use sqlx::types::Uuid;
 
 #[derive(Debug)]
 pub struct Account {
@@ -21,4 +22,15 @@ pub struct AccountHashInfo {
 pub struct AccountEncryptionInfo {
     pub id: i32,
     pub account_encryption_key: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub struct File {
+    pub id: i32,
+    pub public_id: Uuid,
+    pub owner_id: i32,
+    pub encryption_key: Vec<u8>,
+    pub parent_folder_id: Option<i32>,
+    pub metadata: Vec<u8>,
+    pub saved_location: String,
 }
